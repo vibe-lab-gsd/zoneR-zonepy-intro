@@ -12,6 +12,7 @@ abstract: >
   Abstract text here
 bibliography: zoneR-zonepy.bib
 execute: 
+  echo: false
   warning: false
 format:
 #  docx:

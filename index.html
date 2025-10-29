@@ -20,41 +20,6 @@ width: 0.8em;
 margin: 0 0.8em 0.2em -1em;  vertical-align: middle;
 }
 
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-{ counter-reset: source-line 0; }
-pre.numberSource code > span
-{ position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-{ content: counter(source-line);
-position: relative; left: -1em; text-align: right; vertical-align: baseline;
-border: none; display: inline-block;
--webkit-touch-callout: none; -webkit-user-select: none;
--khtml-user-select: none; -moz-user-select: none;
--ms-user-select: none; user-select: none;
-padding: 0 4px; width: 4em;
-}
-pre.numberSource { margin-left: 3em; padding-left: 4px; }
-div.sourceCode
-{ }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
-
 div.csl-bib-body { }
 div.csl-entry {
 clear: both;
@@ -2265,16 +2230,6 @@ vertical-align: -.125em;
 </header>
 
 
-<div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tigris)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(maptiles)</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyterra)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(zoneR)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
 <section id="introduction" class="level1">
 <h1>Introduction</h1>
 <p>We have developed two equivalent software packages, one in R and one in Python, to analyze OZFS data on building characteristics, zoning regulations, and parcel geometry to classify all parcels in a municipality in which a proposed building:</p>
@@ -2308,60 +2263,8 @@ Figure 1: Boundaries of municipalites included in illustrative example
 </div>
 </div>
 </div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>vacant_parcels <span class="ot">&lt;-</span> </span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">parcel_id =</span> <span class="st">&quot;none&quot;</span>,</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">city =</span> <span class="st">&quot;none&quot;</span>,</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">lat =</span> <span class="dv">0</span>,</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">lon =</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_as_sf</span>(<span class="at">coords =</span> <span class="fu">c</span>(<span class="st">&quot;lon&quot;</span>, <span class="st">&quot;lat&quot;</span>),</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>           <span class="at">crs =</span> <span class="st">&quot;WGS84&quot;</span>) <span class="sc">|&gt;</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(parcel_id <span class="sc">!=</span> <span class="st">&quot;none&quot;</span>)</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(cities)) {</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  this_vacant <span class="ot">&lt;-</span> <span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&quot;parcels&quot;</span>,</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">paste0</span>(cities<span class="sc">$</span>NAME[i], <span class="st">&quot;_vacant.parcel&quot;</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">st_read</span>(<span class="at">quiet =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(side <span class="sc">==</span> <span class="st">&quot;centroid&quot;</span>) <span class="sc">|&gt;</span></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(parcel_id) <span class="sc">|&gt;</span></span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">city =</span> cities<span class="sc">$</span>NAME[i]) </span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  vacant_parcels <span class="ot">&lt;-</span> <span class="fu">rbind</span>(vacant_parcels, this_vacant)</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>area_grid <span class="ot">&lt;-</span> <span class="fu">st_make_grid</span>(cities, <span class="at">cellsize =</span> <span class="dv">2640</span>, <span class="at">square =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_as_sf</span>() <span class="sc">|&gt;</span></span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_filter</span>(cities) </span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>area_grid<span class="sc">$</span>grid_id <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(area_grid)</span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>vacant_count <span class="ot">&lt;-</span> vacant_parcels <span class="sc">|&gt;</span></span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(<span class="dv">6584</span>) <span class="sc">|&gt;</span></span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_join</span>(area_grid) <span class="sc">|&gt;</span></span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span></span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(grid_id) <span class="sc">|&gt;</span></span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">num_vacant_parcels =</span> <span class="fu">n</span>())</span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>area_grid <span class="ot">&lt;-</span> area_grid <span class="sc">|&gt;</span></span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(vacant_count) <span class="sc">|&gt;</span></span>
-<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(num_vacant_parcels))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
 <p>For each of these cities, vacant parcels were identified as those without buildings on them, based on building footprint data from Overture Maps <span class="citation" data-cites="OvertureMaps2025Buildings">OpenStreetMap contributors (<a href="#ref-OpenStreetMap2025" role="doc-biblioref">2025</a>)</span>. <a href="#fig-vacant" class="quarto-xref">Figure 2</a> shows the distribution of vacant parcels across the study area.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(cities) <span class="sc">+</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> area_grid, </span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">color =</span> <span class="cn">NA</span>,</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>          <span class="fu">aes</span>(<span class="at">fill =</span> num_vacant_parcels)) <span class="sc">+</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_sf</span>(<span class="at">fill =</span> <span class="cn">NA</span>,</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">color =</span> <span class="st">&quot;gray80&quot;</span>,</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_c</span>(<span class="at">option =</span> <span class="st">&quot;A&quot;</span>,</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>                       <span class="at">transform =</span> <span class="st">&quot;log10&quot;</span>,</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>                       <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">20</span>, <span class="dv">200</span>),</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>                       <span class="at">name =</span> <span class="st">&quot;Number of</span><span class="sc">\n</span><span class="st">vacant parcels</span><span class="sc">\n</span><span class="st">in 1/2-mile grid cell&quot;</span>) <span class="sc">+</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div id="fig-vacant" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -2377,33 +2280,16 @@ Figure 2: Distribution of vacant parcels within study area
 </div>
 <p>If our project folder includes a buildings directory with the building information in a file called <code>4_unit_tall.bldg</code> and parcels and zoning directories that respectively contain the *.parcel and and *.zoning files for all the cities in our study area, we can use the <code>zr_run_zoning_checks()</code> function to identify all the parcels in our study area where the proposed building is (or might be) allowed. Checking this set of 69,500 parcels takes about three hours on a laptop computer with 16GB installed RAM and a 2.6GHz processor.</p>
 <p>The function returns of simple features dataset of parcel centroid points, and it can optionally write the result to a geojson file.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>result_4_unit_tall <span class="ot">&lt;-</span> <span class="fu">zr_run_zoning_checks</span>(</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">bldg_file =</span> <span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                   <span class="st">&quot;buildings&quot;</span>,</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>                   <span class="st">&quot;4_unit_tall.bldg&quot;</span>),</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">parcel_files =</span> <span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&quot;parcels&quot;</span>),</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">zoning_files =</span> <span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&quot;zoning&quot;</span>),</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">save_to =</span> <span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;results&quot;</span>,</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;4-unit-tall.geojson&quot;</span>)</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
 <p>Table X shows the first few rows of the result.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>result_4_unit_tall <span class="sc">|&gt;</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_sample</span>(<span class="at">n =</span> <span class="dv">10</span>) <span class="sc">|&gt;</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <colgroup>
-<col style="width: 27%">
-<col style="width: 7%">
+<col style="width: 28%">
+<col style="width: 10%">
 <col style="width: 7%">
 <col style="width: 5%">
-<col style="width: 22%">
+<col style="width: 19%">
 <col style="width: 9%">
 <col style="width: 19%">
 </colgroup>
@@ -2420,94 +2306,94 @@ Figure 2: Distribution of vacant parcels within study area
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">Dallas_County_combined_parcel_604731</td>
+<td style="text-align: left;">Dallas_County_combined_parcel_385646</td>
+<td style="text-align: left;">Dallas</td>
+<td style="text-align: left;">PD</td>
+<td style="text-align: left;">FALSE</td>
+<td style="text-align: left;">PD_dist</td>
+<td style="text-align: left;">FALSE</td>
+<td style="text-align: left;">POINT (-96.78421 32.79867)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Dallas_County_combined_parcel_683576</td>
 <td style="text-align: left;">Irving</td>
 <td style="text-align: left;">S-P-2</td>
 <td style="text-align: left;">FALSE</td>
 <td style="text-align: left;">res_type</td>
 <td style="text-align: left;">FALSE</td>
-<td style="text-align: left;">POINT (-96.94885 32.87101)</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Dallas_County_combined_parcel_459114</td>
-<td style="text-align: left;">Dallas</td>
-<td style="text-align: left;">R-5(A)</td>
-<td style="text-align: left;">FALSE</td>
-<td style="text-align: left;">res_type, height</td>
-<td style="text-align: left;">FALSE</td>
-<td style="text-align: left;">POINT (-96.78975 32.7439)</td>
+<td style="text-align: left;">POINT (-96.96332 32.83414)</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">Dallas_County_combined_parcel_416369</td>
-<td style="text-align: left;">Dallas</td>
-<td style="text-align: left;">CR</td>
-<td style="text-align: left;">FALSE</td>
-<td style="text-align: left;">res_type</td>
-<td style="text-align: left;">FALSE</td>
-<td style="text-align: left;">POINT (-96.69683 32.77298)</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Dallas_County_combined_parcel_386216</td>
+<td style="text-align: left;">Collin_County_combined_parcel_37248</td>
 <td style="text-align: left;">Dallas</td>
 <td style="text-align: left;">PD</td>
 <td style="text-align: left;">FALSE</td>
 <td style="text-align: left;">PD_dist</td>
 <td style="text-align: left;">FALSE</td>
-<td style="text-align: left;">POINT (-96.91929 32.77269)</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Dallas_County_combined_parcel_372025</td>
-<td style="text-align: left;">Dallas</td>
-<td style="text-align: left;">R-5(A)</td>
-<td style="text-align: left;">FALSE</td>
-<td style="text-align: left;">res_type, height</td>
-<td style="text-align: left;">FALSE</td>
-<td style="text-align: left;">POINT (-96.90453 32.76743)</td>
+<td style="text-align: left;">POINT (-96.76208 32.9935)</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Tarrant_County_combined_parcel_51840</td>
-<td style="text-align: left;">Arlington</td>
-<td style="text-align: left;">RS- 15</td>
-<td style="text-align: left;">FALSE</td>
-<td style="text-align: left;">res_type</td>
-<td style="text-align: left;">FALSE</td>
-<td style="text-align: left;">POINT (-97.14156 32.62094)</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Dallas_County_combined_parcel_224644</td>
+<td style="text-align: left;">Dallas_County_combined_parcel_646986</td>
 <td style="text-align: left;">Dallas</td>
-<td style="text-align: left;">IR</td>
-<td style="text-align: left;">FALSE</td>
-<td style="text-align: left;">res_type</td>
-<td style="text-align: left;">FALSE</td>
-<td style="text-align: left;">POINT (-96.72881 32.76345)</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Dallas_County_combined_parcel_81634</td>
-<td style="text-align: left;">Dallas</td>
-<td style="text-align: left;">CS</td>
-<td style="text-align: left;">FALSE</td>
-<td style="text-align: left;">res_type</td>
-<td style="text-align: left;">FALSE</td>
-<td style="text-align: left;">POINT (-96.80581 32.72238)</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Collin_County_combined_parcel_190461</td>
-<td style="text-align: left;">Dallas</td>
-<td style="text-align: left;">TH-1(A)</td>
-<td style="text-align: left;">FALSE</td>
-<td style="text-align: left;">res_type, height, unit_density</td>
-<td style="text-align: left;">FALSE</td>
-<td style="text-align: left;">POINT (-96.7855 32.99963)</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Tarrant_County_combined_parcel_274276</td>
-<td style="text-align: left;">Arlington</td>
 <td style="text-align: left;">PD</td>
 <td style="text-align: left;">FALSE</td>
 <td style="text-align: left;">PD_dist</td>
 <td style="text-align: left;">FALSE</td>
-<td style="text-align: left;">POINT (-97.06651 32.81428)</td>
+<td style="text-align: left;">POINT (-96.82941 32.77653)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Dallas_County_combined_parcel_372852</td>
+<td style="text-align: left;">Grand Prairie</td>
+<td style="text-align: left;">C</td>
+<td style="text-align: left;">FALSE</td>
+<td style="text-align: left;">res_type</td>
+<td style="text-align: left;">FALSE</td>
+<td style="text-align: left;">POINT (-96.99985 32.81498)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Tarrant_County_combined_parcel_652064</td>
+<td style="text-align: left;">Arlington</td>
+<td style="text-align: left;">CC</td>
+<td style="text-align: left;">FALSE</td>
+<td style="text-align: left;">res_type</td>
+<td style="text-align: left;">FALSE</td>
+<td style="text-align: left;">POINT (-97.06695 32.75357)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Dallas_County_combined_parcel_620432_2</td>
+<td style="text-align: left;">Dallas</td>
+<td style="text-align: left;">R-7.5(A)</td>
+<td style="text-align: left;">FALSE</td>
+<td style="text-align: left;">res_type, height</td>
+<td style="text-align: left;">FALSE</td>
+<td style="text-align: left;">POINT (-96.81292 32.71541)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Dallas_County_combined_parcel_365494</td>
+<td style="text-align: left;">Dallas</td>
+<td style="text-align: left;">PD</td>
+<td style="text-align: left;">FALSE</td>
+<td style="text-align: left;">PD_dist</td>
+<td style="text-align: left;">FALSE</td>
+<td style="text-align: left;">POINT (-96.81913 32.79284)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Dallas_County_combined_parcel_279920</td>
+<td style="text-align: left;">Grand Prairie</td>
+<td style="text-align: left;">MF-1</td>
+<td style="text-align: left;">FALSE</td>
+<td style="text-align: left;">unit_density</td>
+<td style="text-align: left;">FALSE</td>
+<td style="text-align: left;">POINT (-97.03123 32.73678)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Dallas_County_combined_parcel_517964</td>
+<td style="text-align: left;">Dallas</td>
+<td style="text-align: left;">R-7.5(A)</td>
+<td style="text-align: left;">FALSE</td>
+<td style="text-align: left;">res_type, lot_area, height</td>
+<td style="text-align: left;">FALSE</td>
+<td style="text-align: left;">POINT (-96.813 32.72926)</td>
 </tr>
 </tbody>
 </table>
@@ -2515,8 +2401,6 @@ Figure 2: Distribution of vacant parcels within study area
 </div>
 <p>Once the analysis has completed, we can use <code>zr_summary_by_muni()</code> to see the number of parcels in each municipality where our building would be allowed, the number of parcels where it would not be allowed, and the number where it might be allowed, depending on the resolution of one or more ambiguous requirement.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">zr_summary_by_muni</span>(result_4_unit_tall) <span class="sc">|&gt;</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <thead>
@@ -2607,15 +2491,6 @@ Figure 2: Distribution of vacant parcels within study area
 <p>Of the 68,233 vacant parcels in our study area, our proposed building would be allowed on 291, and there are an additional 845 parcels (mostly in Dallas) where the building might be allowed, depending on how we resolve ambiguity in our input datasets.</p>
 <p>We can map the locations of the parcels where the building is (or might be allowed).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>true_or_maybe <span class="ot">&lt;-</span> result_4_unit_tall <span class="sc">|&gt;</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(allowed <span class="sc">!=</span> <span class="st">&quot;FALSE&quot;</span>)</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(true_or_maybe) <span class="sc">+</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> cities, </span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">fill =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="fu">aes</span>(<span class="at">color =</span> allowed),</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>          <span class="at">size =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -2626,8 +2501,6 @@ Figure 2: Distribution of vacant parcels within study area
 </div>
 <p>The <code>zr_summary_maybe()</code> function returns the frequency with which each reason is given for</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">zr_summary_false</span>(result_4_unit_tall) <span class="sc">|&gt;</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <colgroup>
@@ -2687,17 +2560,6 @@ Figure 2: Distribution of vacant parcels within study area
 </div>
 <p>Let’s look at the reasons for why a parcel isn’t allowed. Note that multiple reasons can be given for a building being prohibited. If a parcel is in a planned development district, no other checks are made, and building fit (the most time-consuming check) is only done if the building would be allowed based on all other constraints.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>result_4_unit_tall<span class="sc">$</span>reason[result_4_unit_tall<span class="sc">$</span>allowed <span class="sc">==</span> <span class="st">&quot;FALSE&quot;</span>] <span class="sc">|&gt;</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">strsplit</span>(<span class="st">&quot;, &quot;</span>) <span class="sc">|&gt;</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unlist</span>() <span class="sc">|&gt;</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">table</span>() <span class="sc">|&gt;</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="sc">-</span>Freq) <span class="sc">|&gt;</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">Reason for prohibition</span><span class="st">`</span> <span class="ot">=</span> </span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>           reasons<span class="sc">$</span>false_explain[<span class="fu">match</span>(Var1, reasons<span class="sc">$</span>short_reason)]) <span class="sc">|&gt;</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="st">`</span><span class="at">Number of parcels</span><span class="st">`</span> <span class="ot">=</span> Freq) <span class="sc">|&gt;</span></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="st">`</span><span class="at">Reason for prohibition</span><span class="st">`</span>, <span class="st">`</span><span class="at">Number of parcels</span><span class="st">`</span>) <span class="sc">|&gt;</span></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <colgroup>
