@@ -1,0 +1,268 @@
+---
+title: "ZoneR and zonepy"
+subtitle: "R and Python packages for checking zoning data for building fit"
+authors: 
+  - name: Carole Turley Voulgaris
+    affiliation: Harvard Graduate School of Design
+  - name: Kamryn Mansfield
+    affiliation: Harvard Graduate School of Design
+  - name: Houpu Li
+    affiliation: Harvard Graduate School of Design
+abstract: >
+  Abstract text here
+bibliography: zoneR-zonepy.bib
+execute: 
+  warning: false
+format:
+#  docx:
+#    reference-doc: custom-reference-doc.docx
+ html:
+   self-contained: true
+   theme: minty
+   toc: true
+   toc-location: left
+editor: visual
+---
+
+```{r load-libraries, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(here)
+library(kableExtra)
+library(sf)
+library(tigris)
+library(maptiles)
+library(tidyterra)
+library(zoneR)
+```
+
+# Introduction
+
+We have developed two equivalent software packages, one in R and one in Python, to analyze OZFS data on building characteristics, zoning regulations, and parcel geometry to classify all parcels in a municipality in which a proposed building:
+
+-   Is prohibited under existing zoning regulations,
+
+-   Is allowed under existing zoning regulations,
+
+-   May be allowed under existing zoning regulations, depending on building, parcel, or zoning characteristics that are not fully represented in the input datasets.
+
+# Analysis workflow
+
+Both the R and Python versions of the package ...
+
+# Illustrative example
+
+```{r, results='hide', message=FALSE, echo=FALSE}
+
+parcel_cities <- here("data",
+                      "parcels") |>
+  dir() |>
+  str_sub(1, -15)
+
+cities <- places(state = "TX",
+                 progress_bar = FALSE)|>
+  filter(NAME %in% parcel_cities) |>
+  st_transform(6584) |>
+  select(NAME) 
+
+cities_bbox <- st_bbox(cities)
+
+base_map <- get_tiles(cities,
+                      provider = "CartoDB.Positron",
+                      zoom = 9,
+                      crop = TRUE)
+
+```
+
+To illustrate the use of these two packages, we can run an analysis to identify vacant parcels across eleven municipalities in Texas (including Dallas and ten adjacent cities) on which the respective zoning codes would allow a specific four-unit residential building.
+
+The building in question is 40 feet tall (with a wall-plate height of 39 feet) with four levels, one of which is below-grade. There is one two-bedroom, 1178-square-foot unit on each level, each of which is accessed from inside the building. The building has a flat roof and a 32 by 60-foot rectangular footprint.
+
+The analysis described below uses the R version of the package (zoneR), but the Python version (zonepy) works equivalently.
+
+@fig-study-area shows the boundaries of the municipalities included in this analysis
+
+```{r fig-study-area, echo=FALSE}
+#| fig-cap: "Boundaries of municipalites included in illustrative example"
+#| fig-height: 6
+
+ggplot(cities) +
+  geom_spatraster_rgb(data = base_map) +
+  geom_sf(aes(fill = NAME),
+          alpha = 0.4) +
+  scale_fill_brewer(palette = "Set3",
+                    name = "") +
+  annotate(geom = "text",
+                  x = cities_bbox["xmin"], y = cities_bbox["ymin"],
+                  hjust = 0,
+                  size = 2,
+                  label = get_credit("CartoDB.Positron")) +
+  theme_void() +
+  theme(legend.position = "bottom")
+```
+
+```{r, message=FALSE, results='hide', warning=FALSE}
+
+vacant_parcels <- 
+  tibble(parcel_id = "none",
+         city = "none",
+         lat = 0,
+         lon = 0) |>
+  st_as_sf(coords = c("lon", "lat"),
+           crs = "WGS84") |>
+  filter(parcel_id != "none")
+
+for (i in 1:nrow(cities)) {
+  
+  this_vacant <- here("data",
+                      "parcels",
+                      paste0(cities$NAME[i], "_vacant.parcel")) |>
+    st_read(quiet = TRUE) |>
+    filter(side == "centroid") |>
+    select(parcel_id) |>
+    mutate(city = cities$NAME[i]) 
+  
+  vacant_parcels <- rbind(vacant_parcels, this_vacant)
+}
+
+area_grid <- st_make_grid(cities, cellsize = 2640, square = FALSE) |>
+  st_as_sf() |>
+  st_filter(cities) 
+
+area_grid$grid_id <- 1:nrow(area_grid)
+
+vacant_count <- vacant_parcels |>
+  st_transform(6584) |>
+  st_join(area_grid) |>
+  st_drop_geometry() |>
+  group_by(grid_id) |>
+  summarise(num_vacant_parcels = n())
+
+area_grid <- area_grid |>
+  left_join(vacant_count) |>
+  filter(!is.na(num_vacant_parcels))
+
+
+
+```
+
+For each of these cities, vacant parcels were identified as those without buildings on them, based on building footprint data from Overture Maps [@OvertureMaps2025Buildings, @OpenStreetMap2025]. @fig-vacant shows the distribution of vacant parcels across the study area.
+
+```{r fig-vacant}
+#| fig-cap: "Distribution of vacant parcels within study area"
+#| fig-height: 5
+
+ggplot(cities) +
+  geom_sf(data = area_grid, 
+          color = NA,
+          aes(fill = num_vacant_parcels)) +
+    geom_sf(fill = NA,
+            color = "gray80",
+            linewidth = 1) +
+  scale_fill_viridis_c(option = "A",
+                       transform = "log10",
+                       breaks = c(2, 20, 200),
+                       name = "Number of\nvacant parcels\nin 1/2-mile grid cell") +
+  theme_void() 
+
+```
+
+If our project folder includes a buildings directory with the building information in a file called `4_unit_tall.bldg` and parcels and zoning directories that respectively contain the \*.parcel and and \*.zoning files for all the cities in our study area, we can use the `zr_run_zoning_checks()` function to identify all the parcels in our study area where the proposed building is (or might be) allowed. Checking this set of 69,500 parcels takes about three hours on a laptop computer with 16GB installed RAM and a 2.6GHz processor.
+
+The function returns of simple features dataset of parcel centroid points, and it can optionally write the result to a geojson file.
+
+```{r, eval=FALSE}
+
+result_4_unit_tall <- zr_run_zoning_checks(
+  bldg_file = here("data",
+                   "buildings",
+                   "4_unit_tall.bldg"),
+  parcel_files = here("data",
+                      "parcels"),
+  zoning_files = here("data",
+                      "zoning"),
+  save_to = here("data",
+                 "results",
+                 "4-unit-tall.geojson")
+  )
+
+
+```
+
+```{r, echo=FALSE, message=FALSE, results='hide'}
+
+result_4_unit_tall <- here("data",
+                           "results",
+                           "4-unit-tall.geojson") |>
+  st_read()
+
+
+```
+
+Table X shows the first few rows of the result.
+
+```{r}
+
+result_4_unit_tall |>
+  slice_sample(n = 10) |>
+  kable()
+```
+
+Once the analysis has completed, we can use `zr_summary_by_muni()` to see the number of parcels in each municipality where our building would be allowed, the number of parcels where it would not be allowed, and the number where it might be allowed, depending on the resolution of one or more ambiguous requirement.
+
+```{r}
+
+zr_summary_by_muni(result_4_unit_tall) |>
+  kable()
+
+```
+
+Of the 68,233 vacant parcels in our study area, our proposed building would be allowed on 291, and there are an additional 845 parcels (mostly in Dallas) where the building might be allowed, depending on how we resolve ambiguity in our input datasets.
+
+We can map the locations of the parcels where the building is (or might be allowed).
+
+```{r}
+
+true_or_maybe <- result_4_unit_tall |>
+  filter(allowed != "FALSE")
+
+ggplot(true_or_maybe) +
+  geom_sf(data = cities, 
+          fill = NA) +
+  geom_sf(aes(color = allowed),
+          size = 0.5) +
+  theme_void()
+```
+
+The `zr_summary_maybe()` function returns the frequency with which each reason is given for
+
+```{r}
+
+zr_summary_false(result_4_unit_tall) |>
+  kable()
+```
+
+Let's look at the reasons for why a parcel isn't allowed. Note that multiple reasons can be given for a building being prohibited. If a parcel is in a planned development district, no other checks are made, and building fit (the most time-consuming check) is only done if the building would be allowed based on all other constraints.
+
+```{r}
+
+
+
+
+result_4_unit_tall$reason[result_4_unit_tall$allowed == "FALSE"] |>
+  strsplit(", ") |>
+  unlist() |>
+  table() |>
+  as.data.frame() |>
+  arrange(-Freq) |>
+  mutate(`Reason for prohibition` = 
+           reasons$false_explain[match(Var1, reasons$short_reason)]) |>
+  rename(`Number of parcels` = Freq) |>
+  select(`Reason for prohibition`, `Number of parcels`) |>
+  kable()
+```
+
+# Conclusion
+
+This data standard represents an important step towards the development of scaleable, automated methods that can facilitate strategic increases in the supply of housing in the United States through their direct use by developers and policy-makers. They also offer researchers new opportunities to uncover the ways in which zoning regulations vary across the United States.
+
+# References
