@@ -1,0 +1,44 @@
+dist_name,dist_abbr,planned_dev,muni_name
+Multifamily district 2.,MF-2(A),FALSE,Dallas
+Multifamily district 2 affordable.,MF-2(A)(SAH),FALSE,Dallas
+Dallas_Demolotion_Delay_Overlay,Dallas_Demolotion_Delay_Overlay,FALSE,Dallas
+Dallas_Dry_Overlay,Dallas_Dry_Overlay,FALSE,Dallas
+Dallas_Height_Map_Overlay,Dallas_Height_Map_Overlay,FALSE,Dallas
+Dallas_Historic_Overlay,Dallas_Historic_Overlay,FALSE,Dallas
+Dallas_Historic_Subdistricts,Dallas_Historic_Subdistricts,FALSE,Dallas
+Dallas_MD_Overlay,Dallas_MD_Overlay,FALSE,Dallas
+Dallas_NSO_Overlay,Dallas_NSO_Overlay,FALSE,Dallas
+Dallas_NSO_Subdistricts,Dallas_NSO_Subdistricts,FALSE,Dallas
+Dallas_PD_Subdistricts,Dallas_PD_Subdistricts,FALSE,Dallas
+Dallas_PD193_Oaklawn,Dallas_PD193_Oaklawn,FALSE,Dallas
+Dallas_PDS_Subdistricts,Dallas_PDS_Subdistricts,FALSE,Dallas
+Dallas_Pedestrian_Overlay,Dallas_Pedestrian_Overlay,FALSE,Dallas
+Dallas_Shop_Front_Overlay,Dallas_Shop_Front_Overlay,FALSE,Dallas
+Dallas_SPSD_Overlay,Dallas_SPSD_Overlay,FALSE,Dallas
+Dallas_SUP,Dallas_SUP,FALSE,Dallas
+Dallas_Demolotion_Delay_Overlay,Dallas_Demolotion_Delay_Overlay,FALSE,Dallas
+Dallas_Dry_Overlay,Dallas_Dry_Overlay,FALSE,Dallas
+Dallas_Height_Map_Overlay,Dallas_Height_Map_Overlay,FALSE,Dallas
+Dallas_Historic_Overlay,Dallas_Historic_Overlay,FALSE,Dallas
+Dallas_Historic_Subdistricts,Dallas_Historic_Subdistricts,FALSE,Dallas
+Dallas_MD_Overlay,Dallas_MD_Overlay,FALSE,Dallas
+Dallas_NSO_Overlay,Dallas_NSO_Overlay,FALSE,Dallas
+Dallas_NSO_Subdistricts,Dallas_NSO_Subdistricts,FALSE,Dallas
+Dallas_PD_Subdistricts,Dallas_PD_Subdistricts,FALSE,Dallas
+Dallas_PD193_Oaklawn,Dallas_PD193_Oaklawn,FALSE,Dallas
+Dallas_PDS_Subdistricts,Dallas_PDS_Subdistricts,FALSE,Dallas
+Dallas_Pedestrian_Overlay,Dallas_Pedestrian_Overlay,FALSE,Dallas
+Dallas_Shop_Front_Overlay,Dallas_Shop_Front_Overlay,FALSE,Dallas
+Dallas_SPSD_Overlay,Dallas_SPSD_Overlay,FALSE,Dallas
+Dallas_SUP,Dallas_SUP,FALSE,Dallas
+Planned Development,PD,TRUE,Dalworthington Gardens
+Planned Development,PD,TRUE,Garland
+Central Business,CBD,FALSE,Grand Prairie
+Planned Development,PD,TRUE,Grand Prairie
+State Highway 183 Overlay C,C,FALSE,Irving
+State Highway 183 Overlay D,D,FALSE,Irving
+State Highway 183 Overlay I,I,FALSE,Irving
+Planned Development,PD,TRUE,Rowlett
+Industrial Overlay,IO,FALSE,Rowlett
+Special Use Permit,SUP,FALSE,Rowlett
+FB-BS,FB-BS,FALSE,Rowlett

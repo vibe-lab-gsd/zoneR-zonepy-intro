@@ -15,8 +15,8 @@ execute:
   echo: false
   warning: false
 format:
-#  docx:
-#    reference-doc: custom-reference-doc.docx
+  # docx:
+  #   reference-doc: custom-reference-doc.docx
  html:
    self-contained: true
    theme: minty
@@ -44,11 +44,42 @@ We have developed two equivalent software packages, one in R and one in Python, 
 
 -   Is allowed under existing zoning regulations,
 
--   May be allowed under existing zoning regulations, depending on building, parcel, or zoning characteristics that are not fully represented in the input datasets.
+-   May be allowed under existing zoning regulations, depending on building, parcel, or zoning characteristics that are not fully represented in the input data sets.
 
 # Analysis workflow
 
-Both the R and Python versions of the package ...
+Both the R and Python versions of the package analyze data stored according to the Open Zoning Feed Specification (OZFS) data standard, which is described at length by @Voulgaris2025_OZFS. The OZFS data standard includes methods for storing:
+
+-   zoning regulations for a single municipality in a \*.zoning file,
+
+-   parcel geometry and orientation with respect to the street network for a set of parcels (for instance, all parcels or all vacant parcels within a municipality) in a \*.parcel file, and
+
+-   relevant building characteristics for a single building in a \*.bldg file.
+
+Both packages follow the same analysis workflow, which is illustrated in @fig-flow-chart-full and @fig-flow-chart-base. This workflow is called through a function called `zr_run_zoning_checks()` in the R version of the package and `zp_run_zoning_checks()` in the Python version. Either of these functions takes three files paths as arguments: the locations of
+
+-   A directory containing zoning regulations for one or more municipalities, stored as \*.zoning files using the OZFS data standard;
+
+-   A directory containing parcel geometry for one or more municipalities, stored as a \*.parcel files using the OZFS data standard; and
+
+-   A \*.bldg file defining the relevant features of a proposed building.
+
+```{r fig-flow-chart-full}
+#| fig-cap: "Analysis workflow for z*_run_zoning_checks() function"
+
+here("figures",
+     "flowchart-full.jpg") |>
+  knitr::include_graphics()
+```
+
+
+```{r fig-flow-chart-base}
+#| fig-cap: "Analysis workflow for checking base district compliance within z*_run_zoning_checks() function"
+
+here("figures",
+     "flowchart-base.jpg") |>
+  knitr::include_graphics()
+```
 
 # Illustrative example
 
@@ -69,7 +100,7 @@ cities_bbox <- st_bbox(cities)
 
 base_map <- get_tiles(cities,
                       provider = "CartoDB.Positron",
-                      zoom = 9,
+                      zoom = 10,
                       crop = TRUE)
 
 ```
@@ -78,7 +109,7 @@ To illustrate the use of these two packages, we can run an analysis to identify 
 
 The building in question is 40 feet tall (with a wall-plate height of 39 feet) with four levels, one of which is below-grade. There is one two-bedroom, 1178-square-foot unit on each level, each of which is accessed from inside the building. The building has a flat roof and a 32 by 60-foot rectangular footprint.
 
-The analysis described below uses the R version of the package (zoneR), but the Python version (zonepy) works equivalently.
+The analysis described below uses the R version of the package (zoneR).
 
 @fig-study-area shows the boundaries of the municipalities included in this analysis
 
@@ -199,12 +230,14 @@ result_4_unit_tall <- here("data",
 
 ```
 
-Table X shows the first few rows of the result.
+Table X shows a few rows of the result, excluding the geometry column and the indicator for duplicated parcels.
 
 ```{r}
 
 result_4_unit_tall |>
   slice_sample(n = 10) |>
+  st_drop_geometry() |>
+  select(-is_duplicate) |>
   kable()
 ```
 
@@ -238,32 +271,12 @@ The `zr_summary_maybe()` function returns the frequency with which each reason i
 
 ```{r}
 
-zr_summary_false(result_4_unit_tall) |>
-  kable()
-```
-
-Let's look at the reasons for why a parcel isn't allowed. Note that multiple reasons can be given for a building being prohibited. If a parcel is in a planned development district, no other checks are made, and building fit (the most time-consuming check) is only done if the building would be allowed based on all other constraints.
-
-```{r}
-
-
-
-
-result_4_unit_tall$reason[result_4_unit_tall$allowed == "FALSE"] |>
-  strsplit(", ") |>
-  unlist() |>
-  table() |>
-  as.data.frame() |>
-  arrange(-Freq) |>
-  mutate(`Reason for prohibition` = 
-           reasons$false_explain[match(Var1, reasons$short_reason)]) |>
-  rename(`Number of parcels` = Freq) |>
-  select(`Reason for prohibition`, `Number of parcels`) |>
+zr_summary_maybe(result_4_unit_tall) |>
   kable()
 ```
 
 # Conclusion
 
-This data standard represents an important step towards the development of scaleable, automated methods that can facilitate strategic increases in the supply of housing in the United States through their direct use by developers and policy-makers. They also offer researchers new opportunities to uncover the ways in which zoning regulations vary across the United States.
+This software will facilitate...
 
 # References
