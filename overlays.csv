@@ -1,5 +1,5 @@
 dist_name,dist_abbr,planned_dev,muni_name,Type,Notes
-Central Business,CBD,FALSE,Grand Prairie,,
+Central Business,CBD,FALSE,Grand Prairie,restrict,
 Dallas_Demolotion_Delay_Overlay,Dallas_Demolotion_Delay_Overlay,FALSE,Dallas,restrict,
 Dallas_Dry_Overlay,Dallas_Dry_Overlay,FALSE,Dallas,no-residential-effect,
 Dallas_Height_Map_Overlay,Dallas_Height_Map_Overlay,FALSE,Dallas,restrict,
