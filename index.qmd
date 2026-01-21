@@ -1,6 +1,6 @@
 ---
 title: "ZoneR and zonepy"
-subtitle: "R and Python packages for checking zoning data for building fit"
+subtitle: "R and Python packages for identifying locations for housing"
 authors: 
   - name: Carole Turley Voulgaris
     affiliation: Harvard Graduate School of Design
@@ -38,17 +38,27 @@ library(zoneR)
 
 # Introduction
 
+In recent decades, the emergence of geographic information systems, open-source and crowd-sourced data collection efforts, and open-data platforms operated by public agencies at the local, state, and federal levels have catalyzed the creation of zoning atlases[@metropolitanareaplanningcouncil2025, @schwabacher_atl_2022]. The National Zoning Atlas [@bronin_how_2021] has both consolidated and expanded these efforts. Some of the promise of standardized zoning databases is the potential they might offer to facilitate analysis across jurisdictions. Ideally, such analysis could contribute to addressing the nation's housing shortage by enabling the production of more housing and/or determining the capacity of exiting or proposed zoning codes to absorb additional housing. However, even as efforts to compile and digitize zoning data have continued, systematic analyses using this data to identify opportunities for new housing or to evaluate a region's capacity for new housing under existing or proposed zoning laws have been slow to follow.
+
+Three examples of the type of work that could rely on, but thus far has not relied on, data from zoning atlases or related data sets are those by the Massachusetts Executive Office of Housing and Livable Communities @massachusettsexecutiveofficeofhousingandlivablecommunities2024, @monkkonen_one_2020, and @conway2021. Each of these is described in greater detail below.
+
+In 2024, the Massachusetts Executive Office of Housing and Livable Communities developed a spreadsheet tool to assist communities in determining whether or not their zoning codes were in compliance with state guidelines setting minimum multifamily housing unit capacities for each of 177 cities and towns in Massachusetts. This tool estimates the total number of multifamily housing units that would be allowed on each parcel in a district, based on the total area of the parcel (excluding any area designated as sensitive or otherwise excluded) and fifty possible variables describing zoning restrictions including building setbacks, FAR, maximum height, parking and open space requirements, minimum lot sizes, and restrictions on the number of housing units per acre. These parcel-level estimates are aggregated to the district and municipality levels to determine the multifamily housing capacity of each MBTA community. Estimates rely on parcel size, but do not account for parcel shape or orientation, so capacity estimates may overestimate the feasibility of building on narrow or irregularly-shaped parcels. The tool requires users (intended to be municipal planning staff) to fill in a form with zoning regulation data, rather than ingesting zoning data from a source like the MAPC's zoning atlas [@metropolitanareaplanningcouncil2025] or the National Zoning Atlas [@bronin_how_2021] (which does not currently publish data that could be ingested by a third-party application).
+
+@monkkonen_one_2020 and @conway2021 each estimate the increase in housing supply that could reasonably be expected across many California cities if regulations in all single-family zoning districts were revised to allow specific multifamily prototype buildings, with minimal or no changes to regulations governing building bulk. Both studies use detailed parcel geometries and data on market conditions to determine the feasibility of redevelopment. Although changes to the zoning code are the focus of both studies, neither directly incorporates existing zoning regulations governing build (e.g. setbacks, floor-area ratios, and maximum heights) into the analysis. Rather, both studies generate assumptions for these values based on the characteristics of recently-constructed buildings in the same district. These assumptions were necessary in the absence of a harmonized statewide dataset of zoning regulations.
+
+Efforts at cross-jurisdictional zoning data analysis have been hindered by the lack publicly-available data including a full set of variables needed to describe what can be built under a particular set of zoning regulations. Such a dataset would require a consistent, generalizable data standard. OZFS fills this gap, as described in @Voulgaris2025_OZFS.
+
 We have developed two equivalent software packages, one in R and one in Python, to analyze OZFS data on building characteristics, zoning regulations, and parcel geometry to classify all parcels in a municipality in which a proposed building:
 
--   Is prohibited under existing zoning regulations,
+-   Is prohibited under existing zoning regulations (or requires discretionary review),
 
--   Is allowed under existing zoning regulations,
+-   Is allowed under (by right) existing zoning regulations,
 
--   May be allowed under existing zoning regulations, depending on building, parcel, or zoning characteristics that are not fully represented in the input data sets.
+-   May be allowed under existing zoning regulations, depending ambiguities with regard to building, parcel, or zoning characteristics would need to be resolved with data that is not fully represented in the input data sets.
 
 # Analysis workflow
 
-Both the R and Python versions of the package analyze data stored according to the Open Zoning Feed Specification (OZFS) data standard, which is described at length by @Voulgaris2025_OZFS. The OZFS data standard includes methods for storing:
+Both the R and Python versions of the package analyze data stored according to the Open Zoning Feed Specification (OZFS) data standard, which is described at length in @Voulgaris2025_OZFS. The OZFS data standard includes methods for storing:
 
 -   zoning regulations for a single municipality in a \*.zoning file,
 
@@ -56,13 +66,21 @@ Both the R and Python versions of the package analyze data stored according to t
 
 -   relevant building characteristics for a single building in a \*.bldg file.
 
-Both packages follow the same analysis workflow, which is illustrated in @fig-flow-chart-full and @fig-flow-chart-base. This workflow is called through a function called `zr_run_zoning_checks()` in the R version of the package and `zp_run_zoning_checks()` in the Python version. Either of these functions takes three files paths as arguments: the locations of
+A primary purpose of zoneR and zonepy is to demonstrate the usefulness of the OZFS data standard.
+
+Both packages follow the same analysis workflow, which is illustrated in @fig-flow-chart-full and @fig-flow-chart-base. The workflow completes a series of sequential checks to determine whether a proposed building is allowed (by right), not allowed (meaning it would require a discretionary approval process), or maybe allowed (meaning the input zoning data contains ambiguities with respect to whether the building would be allowed by right).
+
+This workflow is called through a function called `zr_run_zoning_checks()` in the R version of the package and `zp_run_zoning_checks()` in the Python version. Either of these functions takes three files paths as arguments, indicating the locations of:
 
 -   A directory containing zoning regulations for one or more municipalities, stored as \*.zoning files using the OZFS data standard;
 
 -   A directory containing parcel geometry for one or more municipalities, stored as a \*.parcel files using the OZFS data standard; and
 
 -   A \*.bldg file defining the relevant features of a proposed building.
+
+An optional argument, `detailed_check` can be set to true, to indicate that the the user wants to check the building against all relevant regulations. If it is set to false (the default), the function will return a value of "Not allowed" or "Maybe allowed" as soon as it encounters a regulation that the proposed building does not unambiguously meet, forgoing subsequent checks. The workflow described here is for the case where `detailed_check` is false.
+
+The z\*\_run_zoning_checks workflow comprises three parts: pre-processing, base-district checks, and overlay checks.
 
 ```{r fig-flow-chart-full}
 #| fig-cap: "Analysis workflow for z*_run_zoning_checks() function"
@@ -72,6 +90,17 @@ here("figures",
   knitr::include_graphics()
 ```
 
+## Pre-processing
+
+The pre-processing portion of the workflow is illustrated by the gray-shaded portion of @fig-flow-chart-full. It begins by sorting districts into base districts, overlay districts, and none-by-right districts (which may be base districts or overlay districts). Any parcel in a none-by-right district is classified as "Not allowed" and no further checks are done.
+
+Parcels are matched to the base districts containing their respective centroids. We use centroids to match parcels to base districts because parcel polygons may overlap multiple base districts. In general, we have found these overlaps to be very small and likely to be a result of small errors in the geospatial data defining either the district boundaries or the parcel boundaries. Similiarly, in some cases, base district polygons may slightly overlap one another. In rare cases, a parcel centroid may occasionally fall within the boundaries of two base districts. In these cases, the parcel in question is duplicated within the parcel dataset so that it can be tested against the requirements of both base districts, with a warning to indicate to the use that they may need to resolve the ambiguity regarding which base district's regulations apply.
+
+Prior to comparing building characteristics against base-district requirements, there is a pre-processing step to determine the building's height and type (e.g. duplex, single-family, multi-family) based on municipality-specific definitions. Then, we identify the zoning regulations for the base district containing the parcel centroid.
+
+## Base district checks
+
+Base district checks include building-level requirements (e.g. floor-area ratios, maximum height, number of units), unit-level requirements (e.g. minimum number of bedrooms, minimum square-footage per unit), and building fit (based on parcel geometry and allowable setbacks).
 
 ```{r fig-flow-chart-base}
 #| fig-cap: "Analysis workflow for checking base district compliance within z*_run_zoning_checks() function"
@@ -81,7 +110,39 @@ here("figures",
   knitr::include_graphics()
 ```
 
+Checking for building fit is the most complicated of the checks, both due to common data quality issues and because it requires more computation. Computationally, as Conway @conway2021 notes, the question of whether one polygon fits within another polygon, allowing for rotation, is not trivial. We test for building fit on a parcel (and/or the parcel's buildable area, accounting for required setbacks) as he does, we rasterize both the parcel polygon and the building polygon and test whether, when the building is places at the edge of the buildable area, all of its pixels coincide with pixels within the parcel's buildable area. If the building does not fit based on this initial check, we rotate it iteratively in fifteen-degree increments until we find an orientation for which it does fit (or until all 24 possible rotations have been checked). Note that this approach assumes that the building can be placed in any orientation on the parcel and does not, for example, require that the front entrance to a building necessarily needs to face the street.
+
+Common data quality issues can also make it difficult to test building fit. We determine the parcel's buildable area, if possible, based on required setbacks. The \*.parcel file includes geospatial parcel boundaries, with parcel sides labeled to indicate each parcel's orientation with respect to the street. A parcel side may be labeled as front, rear, interior side, exterior side (for corner lots), or unknown. If a parcel sides are labeled as unknown, it is not possible to determine which setbacks to apply. An "unknown" label indicates that, when the \*.parcel file was created, it wasn't possible to determine which side of the parcel was the front. This could be because the parcel shape is irregular, or because none of its sides are adjacent to an identified street. The latter condition could arise when a parcel really isn't adjacent to a street, or when parcel sides were labeled with reference to a street centerline file that was missing some streets (such as private or newly constructed roads).
+
+If it a parcel's sides are not labeled, we still check to see if we can rule out the building being allowed on the parcel be checking to see if it would fit on the parcel even under a condition without any required setbacks.
+
+Ambiguous results to the base-district checks will generally arise if there are two alternative requirements that might apply to a building, depending on a condition that cannot be determined from the input data. For example, there could be two different maximum FAR values depending on whether units in the building are affordable (the \*.building file only includes physical characteristics of the building). If the building meets the requirements for both alternatives, the function would return "allowed" (if the building passes all subsequent checks as well). If the building does not meet either alternative, the function would return "not allowed." If the building meets one maximum FAR, but not the other, the function would return "maybe allowed." A similar situation could arise if there are two alternative sets of required setbacks, depending on whether (for example) the building is located within a quarter-mile of transit. The function would approach this by generating two alternative buildable area polygons. If the building fits in both, the function would return "allowed"; if it fits in neither, the function would return "not allowed"; if it fits in one but not the other, it would return "maybe allowed." Note that this particular ambiguity could be partially resolved if the \*.zoning file includes an overlay district that defines all areas within a quarter mile of transit. If the sides of a parcel are not labeled (i.e. they are labeled as "unknown"), the function will never will return "allowed." It will return "not allowed" if the building does not fit on the parcel at all, or it will return "maybe allowed" if it fits on the parcel, but the buildable area cannot be determined without information on which side of the parcel is the front.
+
+## Overlay checks
+
+If the results of the base-district checks is ambiguous, the function will return a final result of "maybe allowed". Otherwise, it will check to see if any ambiguity has been introduced by overlay districts before returning a final result of "allowed" or "not allowed."
+
+In the \*.zoning file, an overlay district can be classified as one of six types:
+
+-   **replace**: Zoning codes contain language for these districts that specifies that, in the even of a conflict between base district regulations and overlay regulations, the regulations for the overlay district govern.
+
+-   **relax**: Zoning codes contain language for these districts that specifies that, in the even of a conflict between base district regulations and overlay regulations, the less restrictive regulations govern.
+
+-   **restrict**: Zoning codes contain language for these districts that specifies that, in the even of a conflict between base district regulations and overlay regulations, the stricter regulations govern.
+
+-   **no-residential-effect**: The overlay only effects non-residential uses. For example, the city of Dallas has a liquor control overlay district that prohibits the sale of alcohol, but would not have any effect on residential land uses. Other overlay districts might explicitly indicate that they introduce additional restrictions that only apply to commercial uses. These overlay districts are ignored by the analysis.
+
+-   **demolition-only**: These overlays governs what may be demolished, but not what can be built. Historic district overlays may fall in this category. These overlay districts are treated as a "restrict" type for non-vacant parcels, but are ignored for vacant parcels.
+
+-   **None-by-right**, meaning any development would require approval. All buildings for parcels in these districts will be classified as "not allowed" prior to any base district checks (and would thus not reach the overlay portion of the workflow).
+
+If a building meets all the requirements of its base district, and it is not in a relevant (relax, restrict, or replace) overlay district, the `z*_run_zoning_checks` function will return a final result of "allowed." If it is in an overlay district, the function will check the overlay district type to indicate whether the district relaxes, restricts, or replaces the requirements of the base districts. If the overlay district relaxes or replaces the requirements of the base district, the function will return a final result of "maybe allowed" (the current version of the package does not do further checks to see whether the building meets these relaxed requirements).
+
+Similarly, if a building does not meet the requirements of its base district, and it is either (1) not in an an overlay district or (2) in an overlay district that further restricts the base district standards, the `z*_run_zoning_checks` function will return a final result of "not allowed." Otherwise, it will return a final result of "maybe allowed."
+
 # Illustrative example
+
+{NOTE: Rerun and update this part when overlay revisions to the zoneR package are complete}
 
 ```{r, results='hide', message=FALSE, echo=FALSE}
 
@@ -105,7 +166,7 @@ base_map <- get_tiles(cities,
 
 ```
 
-To illustrate the use of these two packages, we can run an analysis to identify vacant parcels across eleven municipalities in Texas (including Dallas and ten adjacent cities) on which the respective zoning codes would allow a specific four-unit residential building.
+To illustrate the use of the zoneR and zonepy packages, we can run an analysis to identify vacant parcels across eleven municipalities in Texas (including Dallas and ten adjacent cities) on which the respective zoning codes would allow a specific four-unit residential building.
 
 The building in question is 40 feet tall (with a wall-plate height of 39 feet) with four levels, one of which is below-grade. There is one two-bedroom, 1178-square-foot unit on each level, each of which is accessed from inside the building. The building has a flat roof and a 32 by 60-foot rectangular footprint.
 
@@ -241,7 +302,7 @@ result_4_unit_tall |>
   kable()
 ```
 
-Once the analysis has completed, we can use `zr_summary_by_muni()` to see the number of parcels in each municipality where our building would be allowed, the number of parcels where it would not be allowed, and the number where it might be allowed, depending on the resolution of one or more ambiguous requirement.
+Once the analysis has completed, we can use `zr_summary_by_muni()` to see the number of parcels in each municipality where our building would be allowed, the number of parcels where it would not be allowed, and the number where it might be allowed, depending on the resolution of one or more ambiguous requirements.
 
 ```{r}
 
@@ -252,7 +313,7 @@ zr_summary_by_muni(result_4_unit_tall) |>
 
 Of the 68,233 vacant parcels in our study area, our proposed building would be allowed on 291, and there are an additional 845 parcels (mostly in Dallas) where the building might be allowed, depending on how we resolve ambiguity in our input datasets.
 
-We can map the locations of the parcels where the building is (or might be allowed).
+We can map the locations of the parcels where the building is (or might be) allowed.
 
 ```{r}
 
@@ -267,7 +328,7 @@ ggplot(true_or_maybe) +
   theme_void()
 ```
 
-The `zr_summary_maybe()` function returns the frequency with which each reason is given for
+The `zr_summary_maybe()` function returns the frequency with which each reason is given for an ambiguous result. This may be useful for identifying ways that improvements in data quality might reduce ambiguity in the analysis. In this example, just over 30 percent of the ambiguous results result from parcels with unlabeled sides, which suggests that an improved method for labeling parcel sides could improve the analysis.
 
 ```{r}
 
@@ -275,8 +336,16 @@ zr_summary_maybe(result_4_unit_tall) |>
   kable()
 ```
 
+The `zr_summary_false()` function returns the frequency with which each reason is for classifying a parcel as not allowable for the prototype buliding. This may be useful identifying which specific types of zoning regulations are most limiting the potential for developing a particular prototype building. In this example, about forty percent of the parcels in which our prototype four-plex is prohibited are in districts that do not allow four-plexes. An additional 22 percent are in disticts where all development requires discretionary review. In 21 percent of parcels where the prototype four-plex is not allowed, a four-plex might be permitted, but this particular four-plex is too tall.
+
+```{r}
+
+zr_summary_false(result_4_unit_tall) |>
+  kable()
+```
+
 # Conclusion
 
-This software will facilitate...
+This software represents a step toward enabling large-sample studies across municipalities to determine the relationship between zoning regulations and that capacity of regions to absorb small and medium-sized developments as infill housing. We hope that it can also be useful to cities seeking ways to encourage such development and to developers seeking in increase the supply of "missing middle" housing. Both packages are available as open-source software and we welcome contributions from others who wish to build up on this effort to improve the capabilities and efficiency of these packages.
 
 # References
